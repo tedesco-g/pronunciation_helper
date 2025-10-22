@@ -169,34 +169,6 @@
             color: #555;
         }
 
-        .languages-list {
-            margin-top: 20px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
-
-        .languages-list h3 {
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 1em;
-        }
-
-        .languages-list ul {
-            list-style: none;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 8px;
-        }
-
-        .languages-list li {
-            padding: 8px;
-            background: white;
-            border-radius: 5px;
-            font-size: 0.85em;
-            color: #555;
-        }
-
         .loading {
             display: inline-block;
             width: 20px;
@@ -215,7 +187,7 @@
 <body>
     <div class="container">
         <h1>🌍 English Pronunciation Helper</h1>
-        <p class="subtitle">Learn to pronounce English words in your language</p>
+        <p class="subtitle">Learn to pronounce English words using your native language sounds</p>
 
         <div class="input-group">
             <label for="word">📝 English Word</label>
@@ -227,14 +199,12 @@
             <select id="language">
                 <option value="">Select a language...</option>
                 <option value="italian">Italian</option>
-                <option value="spanish_latam">Spanish (Latin America)</option>
-                <option value="spanish_spain">Spanish (Spain)</option>
+                <option value="spanish">Spanish</option>
                 <option value="french">French</option>
                 <option value="polish">Polish</option>
                 <option value="turkish">Turkish</option>
-                <option value="portuguese_brazil">Portuguese (Brazil)</option>
-                <option value="portuguese_portugal">Portuguese (Portugal)</option>
-                <option value="korean">Korean</option>
+                <option value="portuguese">Portuguese</option>
+                <option value="german">German</option>
             </select>
         </div>
 
@@ -244,15 +214,15 @@
             <div class="result-title">📖 English Word</div>
             <div class="result-content" id="englishWord"></div>
 
-            <div class="result-title">🗣️ Pronunciation Guide</div>
+            <div class="result-title">🗣️ How to Say It (in your language)</div>
             <div class="result-content" id="pronunciation"></div>
 
             <div class="audio-controls">
                 <button class="audio-btn" onclick="playEnglish()" id="playEnBtn">
-                    🔊 Play English
+                    🔊 Hear English
                 </button>
                 <button class="audio-btn" onclick="playApproximation()" id="playAppBtn">
-                    🔊 Play Approximation
+                    🔊 Hear Approximation
                 </button>
             </div>
 
@@ -261,125 +231,307 @@
     </div>
 
     <script>
-        const phoneticMaps = {
+        // Pronunciation rules: map English sound patterns to native language spellings
+        const pronunciationRules = {
             italian: {
-                b:"b", c:"k", d:"d", f:"f", g:"gh", h:"", j:"gi", k:"k", l:"l", 
-                m:"m", n:"n", p:"p", q:"ku", r:"r", s:"s", t:"t", v:"v", w:"u", 
-                x:"ks", y:"i", z:"z", a:"a", e:"e", i:"i", o:"o", u:"u",
-                th:"t", sh:"sc", ch:"c", ph:"f"
+                // Vowels with stress marks for Italian readers
+                'ow': 'áu',      // drowning → dráuning
+                'ay': 'éi',      // say → séi
+                'ee': 'i',       // see → si
+                'oo': 'u',       // food → fud
+                'au': 'o',       // autumn → otom
+                'or': 'or',      // for → for
+                'ar': 'ar',      // car → car
+                'er': 'er',      // term → term
+                'ir': 'er',      // bird → berd
+                'ur': 'er',      //urn → ern
+                'th': 't',       // think → tink
+                'sh': 'sc',      // ship → scip
+                'ch': 'c',       // chair → cer
+                'j': 'gi',       // jump → giamp
+                'w': 'u',        // water → uoter
+                'y': 'i',        // yes → ies
+                'ng': 'ng',      // sing → sing
+                'tion': 'scen',  // nation → neiscen
+                'sion': 'scen',  // vision → viscen
+                'qu': 'ku',      // quick → kuik
+                // Single letters
+                'a': 'a', 'e': 'e', 'i': 'i', 'o': 'o', 'u': 'u',
+                'b': 'b', 'c': 'k', 'd': 'd', 'f': 'f', 'g': 'g',
+                'h': '', 'k': 'k', 'l': 'l', 'm': 'm', 'n': 'n',
+                'p': 'p', 'r': 'r', 's': 's', 't': 't', 'v': 'v',
+                'x': 'ks', 'z': 'z'
             },
-            spanish_latam: {
-                b:"b", c:"k", d:"d", f:"f", g:"g", h:"", j:"y", k:"k", l:"l", 
-                m:"m", n:"n", p:"p", q:"k", r:"r", s:"s", t:"t", v:"b", w:"gu", 
-                x:"ks", y:"i", z:"s", a:"a", e:"e", i:"i", o:"o", u:"u",
-                th:"z", sh:"ch", ch:"ch", ph:"f"
-            },
-            spanish_spain: {
-                b:"b", c:"k", d:"d", f:"f", g:"g", h:"", j:"y", k:"k", l:"l", 
-                m:"m", n:"n", p:"p", q:"k", r:"r", s:"s", t:"t", v:"b", w:"gu", 
-                x:"ks", y:"i", z:"z", a:"a", e:"e", i:"i", o:"o", u:"u",
-                th:"z", sh:"ch", ch:"ch", ph:"f"
-            },
-            french: {
-                b:"b", c:"k", d:"d", f:"f", g:"g", h:"", j:"j", k:"k", l:"l", 
-                m:"m", n:"n", p:"p", q:"k", r:"r", s:"s", t:"t", v:"v", w:"ou", 
-                x:"ks", y:"i", z:"z", a:"a", e:"eu", i:"i", o:"o", u:"ou",
-                th:"z", sh:"ch", ch:"tch", ph:"f"
+            spanish: {
+                // Spanish phonetic spelling
+                'ow': 'áu',      // now → náu
+                'ay': 'éi',      // say → séi
+                'ee': 'i',       // see → si
+                'ea': 'i',       // eat → it
+                'oo': 'u',       // food → fud
+                'or': 'or',      // for → for
+                'ar': 'ar',      // car → car
+                'er': 'er',      // term → term
+                'ir': 'er',      // bird → berd
+                'ur': 'er',      // turn → tern
+                'th': 'z',       // think → zink
+                'sh': 'sh',      // ship → ship
+                'ch': 'ch',      // chair → cher
+                'w': 'ú',        // warm → uórm
+                'y': 'i',        // yes → ies
+                'ng': 'ng',      // sing → sing
+                'tion': 'shon',  // nation → neishon
+                'qu': 'cu',      // quick → cuik
+                // Single letters
+                'a': 'a', 'e': 'e', 'i': 'i', 'o': 'o', 'u': 'u',
+                'b': 'b', 'c': 'k', 'd': 'd', 'f': 'f', 'g': 'g',
+                'h': '', 'j': 'y', 'k': 'k', 'l': 'l', 'm': 'm',
+                'n': 'n', 'p': 'p', 'r': 'r', 's': 's', 't': 't',
+                'v': 'v', 'x': 'ks', 'z': 's'
             },
             polish: {
-                b:"b", c:"c", d:"d", f:"f", g:"g", h:"h", j:"dż", k:"k", l:"l", 
-                m:"m", n:"n", p:"p", q:"k", r:"r", s:"s", t:"t", v:"w", w:"ł", 
-                x:"ks", y:"y", z:"z", a:"a", e:"e", i:"i", o:"o", u:"u",
-                th:"f", sh:"sz", ch:"cz", ph:"f"
+                // Polish phonetic spelling
+                'ow': 'au',      // now → nau
+                'ay': 'ej',      // say → sej
+                'ee': 'i',       // see → si
+                'ea': 'i',       // eat → it
+                'oo': 'u',       // food → fud
+                'wa': 'łe',      // wave → łejw
+                'we': 'łe',      // wavelength → łej-łlen-f
+                'or': 'or',      // for → for
+                'ar': 'ar',      // car → kar
+                'er': 'er',      // term → term
+                'ir': 'er',      // bird → berd
+                'ur': 'er',      // turn → tern
+                'th': 'f',       // think → fink
+                'sh': 'sz',      // ship → szip
+                'ch': 'cz',      // chair → czer
+                'w': 'ł',        // water → łoter
+                'y': 'j',        // yes → jes
+                'ng': 'ng',      // sing → sing
+                'tion': 'szen',  // nation → nejszen
+                'qu': 'kł',      // quick → kłik
+                // Single letters
+                'a': 'a', 'e': 'e', 'i': 'i', 'o': 'o', 'u': 'u',
+                'b': 'b', 'c': 'k', 'd': 'd', 'f': 'f', 'g': 'g',
+                'h': 'h', 'j': 'dż', 'k': 'k', 'l': 'l', 'm': 'm',
+                'n': 'n', 'p': 'p', 'r': 'r', 's': 's', 't': 't',
+                'v': 'w', 'x': 'ks', 'z': 'z'
+            },
+            french: {
+                // French phonetic spelling
+                'ow': 'aou',     // now → naou
+                'ay': 'é',       // say → sé
+                'ee': 'i',       // see → si
+                'ea': 'i',       // eat → ite
+                'oo': 'ou',      // food → foud
+                'or': 'or',      // for → for
+                'ar': 'ar',      // car → car
+                'er': 'eur',     // term → teurm
+                'ir': 'eur',     // bird → beurd
+                'ur': 'eur',     // turn → teurn
+                'th': 'z',       // think → zink
+                'sh': 'ch',      // ship → chip
+                'ch': 'tch',     // chair → tcher
+                'w': 'ou',       // water → ouater
+                'y': 'i',        // yes → iess
+                'ng': 'ng',      // sing → sing
+                'tion': 'cheun', // nation → néicheun
+                'qu': 'koui',    // quick → kouik
+                // Single letters
+                'a': 'a', 'e': 'eu', 'i': 'i', 'o': 'o', 'u': 'ou',
+                'b': 'b', 'c': 'k', 'd': 'd', 'f': 'f', 'g': 'g',
+                'h': '', 'j': 'dj', 'k': 'k', 'l': 'l', 'm': 'm',
+                'n': 'n', 'p': 'p', 'r': 'r', 's': 's', 't': 't',
+                'v': 'v', 'x': 'ks', 'z': 'z'
             },
             turkish: {
-                b:"b", c:"c", d:"d", f:"f", g:"g", h:"h", j:"c", k:"k", l:"l", 
-                m:"m", n:"n", p:"p", q:"k", r:"r", s:"s", t:"t", v:"v", w:"v", 
-                x:"ks", y:"y", z:"z", a:"a", e:"e", i:"i", o:"o", u:"u",
-                th:"t", sh:"ş", ch:"ç", ph:"f"
+                // Turkish phonetic spelling
+                'ow': 'au',      // now → nau
+                'ay': 'ey',      // say → sey
+                'ee': 'i',       // see → si
+                'ea': 'i',       // eat → it
+                'oo': 'u',       // food → fud
+                'or': 'or',      // for → for
+                'ar': 'ar',      // car → kar
+                'er': 'ır',      // term → tırm
+                'ir': 'ır',      // bird → bırd
+                'ur': 'ır',      // turn → tırn
+                'th': 't',       // think → tink
+                'sh': 'ş',       // ship → şip
+                'ch': 'ç',       // chair → çer
+                'w': 'v',        // water → voter
+                'y': 'y',        // yes → yes
+                'ng': 'ng',      // sing → sing
+                'tion': 'şın',   // nation → neyşın
+                'qu': 'kv',      // quick → kvik
+                // Single letters
+                'a': 'a', 'e': 'e', 'i': 'i', 'o': 'o', 'u': 'u',
+                'b': 'b', 'c': 'c', 'd': 'd', 'f': 'f', 'g': 'g',
+                'h': 'h', 'j': 'c', 'k': 'k', 'l': 'l', 'm': 'm',
+                'n': 'n', 'p': 'p', 'r': 'r', 's': 's', 't': 't',
+                'v': 'v', 'x': 'ks', 'z': 'z'
             },
-            portuguese_brazil: {
-                b:"b", c:"k", d:"d", f:"f", g:"g", h:"", j:"j", k:"k", l:"l", 
-                m:"m", n:"n", p:"p", q:"k", r:"r", s:"s", t:"t", v:"v", w:"u", 
-                x:"ks", y:"i", z:"z", a:"a", e:"e", i:"i", o:"o", u:"u",
-                th:"t", sh:"ch", ch:"tch", ph:"f"
+            portuguese: {
+                // Portuguese phonetic spelling
+                'ow': 'au',      // now → nau
+                'ay': 'ei',      // say → sei
+                'ee': 'i',       // see → si
+                'ea': 'i',       // eat → ite
+                'oo': 'u',       // food → fude
+                'or': 'or',      // for → for
+                'ar': 'ar',      // car → car
+                'er': 'er',      // term → term
+                'ir': 'er',      // bird → berd
+                'ur': 'er',      // turn → tern
+                'th': 't',       // think → tink
+                'sh': 'ch',      // ship → chip
+                'ch': 'tch',     // chair → tcher
+                'w': 'u',        // water → uóter
+                'y': 'i',        // yes → iés
+                'ng': 'ng',      // sing → sing
+                'tion': 'chon',  // nation → neichon
+                'qu': 'cu',      // quick → cuik
+                // Single letters
+                'a': 'a', 'e': 'e', 'i': 'i', 'o': 'o', 'u': 'u',
+                'b': 'b', 'c': 'k', 'd': 'd', 'f': 'f', 'g': 'g',
+                'h': '', 'j': 'dj', 'k': 'k', 'l': 'l', 'm': 'm',
+                'n': 'n', 'p': 'p', 'r': 'r', 's': 's', 't': 't',
+                'v': 'v', 'x': 'ks', 'z': 'z'
             },
-            portuguese_portugal: {
-                b:"b", c:"k", d:"d", f:"f", g:"g", h:"", j:"j", k:"k", l:"l", 
-                m:"m", n:"n", p:"p", q:"k", r:"r", s:"s", t:"t", v:"v", w:"u", 
-                x:"ks", y:"i", z:"z", a:"a", e:"e", i:"i", o:"o", u:"u",
-                th:"t", sh:"ch", ch:"tch", ph:"f"
-            },
-            korean: {
-                b:"b", c:"k", d:"d", f:"p", g:"g", h:"h", j:"j", k:"k", l:"l", 
-                m:"m", n:"n", p:"p", q:"k", r:"r", s:"s", t:"t", v:"b", w:"w", 
-                x:"ks", y:"y", z:"j", a:"a", e:"e", i:"i", o:"o", u:"u",
-                th:"s", sh:"sh", ch:"ch", ph:"p"
+            german: {
+                // German phonetic spelling
+                'ow': 'au',      // now → nau
+                'ay': 'ei',      // say → sei
+                'ee': 'i',       // see → sie
+                'ea': 'i',       // eat → iet
+                'oo': 'u',       // food → fud
+                'or': 'or',      // for → for
+                'ar': 'ar',      // car → kar
+                'er': 'ör',      // term → term
+                'ir': 'ör',      // bird → börd
+                'ur': 'ör',      // turn → törn
+                'th': 's',       // think → sink
+                'sh': 'sch',     // ship → schip
+                'ch': 'tsch',    // chair → tscher
+                'w': 'w',        // water → water
+                'y': 'j',        // yes → jes
+                'ng': 'ng',      // sing → sing
+                'tion': 'schön', // nation → neischön
+                'qu': 'kw',      // quick → kwik
+                // Single letters
+                'a': 'ä', 'e': 'e', 'i': 'i', 'o': 'o', 'u': 'u',
+                'b': 'b', 'c': 'k', 'd': 'd', 'f': 'f', 'g': 'g',
+                'h': 'h', 'j': 'dsch', 'k': 'k', 'l': 'l', 'm': 'm',
+                'n': 'n', 'p': 'p', 'r': 'r', 's': 's', 't': 't',
+                'v': 'w', 'x': 'ks', 'z': 'z'
             }
         };
 
+        // Special case words that need custom pronunciation
+        const specialWords = {
+            italian: {
+                'thursday': 'térsdei',
+                'drowning': 'dráu-ning',
+                'through': 'zru',
+                'thought': 'zot'
+            },
+            spanish: {
+                'infuriated': 'in-fiú-rieid',
+                'warm': 'uórm',
+                'world': 'uérld',
+                'work': 'uérk'
+            },
+            polish: {
+                'wavelength': 'łej-w-len-f',
+                'water': 'łóter',
+                'world': 'łerld'
+            },
+            french: {
+                'world': 'oueurld',
+                'work': 'oueuurk'
+            },
+            turkish: {},
+            portuguese: {},
+            german: {}
+        };
+
         const langCodes = {
-            italian: "it", spanish_latam: "es", spanish_spain: "es",
-            french: "fr", polish: "pl", turkish: "tr",
-            portuguese_brazil: "pt", portuguese_portugal: "pt", korean: "ko"
+            italian: "it",
+            spanish: "es",
+            french: "fr",
+            polish: "pl",
+            turkish: "tr",
+            portuguese: "pt",
+            german: "de"
         };
 
         let currentWord = "";
         let currentLang = "";
         let currentPhonetic = "";
 
-        function phoneticConvert(word, lang) {
-            const mapping = phoneticMaps[lang];
-            if (!mapping) return word;
-
+        function convertToPhonetic(word, lang) {
             const lower = word.toLowerCase();
+            
+            // Check for special case words first
+            if (specialWords[lang] && specialWords[lang][lower]) {
+                return specialWords[lang][lower];
+            }
+
+            const rules = pronunciationRules[lang];
+            if (!rules) return word;
+
             let result = "";
             let i = 0;
 
+            // Process from longest patterns to shortest
+            const sortedPatterns = Object.keys(rules).sort((a, b) => b.length - a.length);
+
             while (i < lower.length) {
-                if (i < lower.length - 1) {
-                    const digraph = lower.substring(i, i + 2);
-                    if (mapping[digraph]) {
-                        result += mapping[digraph];
-                        i += 2;
-                        continue;
+                let matched = false;
+
+                // Try to match patterns from longest to shortest
+                for (const pattern of sortedPatterns) {
+                    if (lower.substring(i, i + pattern.length) === pattern) {
+                        result += rules[pattern];
+                        i += pattern.length;
+                        matched = true;
+                        break;
                     }
                 }
-                result += mapping[lower[i]] || lower[i];
-                i++;
+
+                // If no pattern matched, keep the original character
+                if (!matched) {
+                    result += lower[i];
+                    i++;
+                }
             }
 
             return result;
         }
 
-        function splitSyllables(word) {
-            const vowels = "aeiouy";
-            const result = [];
-            let current = "";
-
-            for (let i = 0; i < word.length; i++) {
-                const ch = word[i].toLowerCase();
-                current += ch;
-
-                if (vowels.includes(ch) && i < word.length - 1) {
-                    const next = word[i + 1].toLowerCase();
-                    if (!vowels.includes(next)) {
-                        if (i < word.length - 2) {
-                            const twoAhead = word.substring(i + 1, i + 3).toLowerCase();
-                            if (!['th', 'sh', 'ch', 'ph', 'ck', 'ng'].includes(twoAhead)) {
-                                result.push(current);
-                                current = "";
-                            }
-                        } else {
-                            result.push(current);
-                            current = "";
-                        }
+        function addSyllableBreaks(text) {
+            // Add hyphens between syllables for readability
+            const vowels = 'aáàäeéèëiíìïoóòöuúùüyæœ';
+            let result = '';
+            
+            for (let i = 0; i < text.length; i++) {
+                result += text[i];
+                
+                // Add hyphen after vowel if followed by consonant
+                if (vowels.includes(text[i].toLowerCase()) && 
+                    i < text.length - 1 && 
+                    !vowels.includes(text[i + 1].toLowerCase()) &&
+                    text[i + 1] !== '-') {
+                    
+                    // Don't break before last consonant
+                    if (i < text.length - 2) {
+                        result += '-';
                     }
                 }
             }
-
-            if (current) result.push(current);
-            return result.length > 0 ? result.join("-") : word;
+            
+            return result;
         }
 
         function pronounce() {
@@ -399,22 +551,22 @@
             currentWord = word;
             currentLang = lang;
             
-            const phonetic = phoneticConvert(word, lang);
-            const syllables = splitSyllables(phonetic);
+            const phonetic = convertToPhonetic(word, lang);
+            const withBreaks = addSyllableBreaks(phonetic);
             currentPhonetic = phonetic;
 
             document.getElementById('englishWord').textContent = word;
-            document.getElementById('pronunciation').textContent = syllables;
+            document.getElementById('pronunciation').textContent = withBreaks;
             
-            const langName = lang.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            document.getElementById('tip').textContent = 
-                `💡 Tip: Try saying "${syllables}" using ${langName} sounds!`;
+            const langName = lang.charAt(0).toUpperCase() + lang.slice(1);
+            document.getElementById('tip').innerHTML = 
+                `💡 <strong>Tip:</strong> Read "${withBreaks}" as if it were a ${langName} word. Each letter makes its typical ${langName} sound!`;
 
             document.getElementById('result').classList.add('show');
         }
 
         function playEnglish() {
-            playAudio(currentWord, 'en', 'playEnBtn');
+            playAudio(currentWord, 'en-US', 'playEnBtn');
         }
 
         function playApproximation() {
@@ -429,16 +581,16 @@
 
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = lang;
-            utterance.rate = 0.8;
+            utterance.rate = 0.75;
 
             utterance.onend = () => {
                 btn.disabled = false;
-                btn.innerHTML = btnId === 'playEnBtn' ? '🔊 Play English' : '🔊 Play Approximation';
+                btn.innerHTML = btnId === 'playEnBtn' ? '🔊 Hear English' : '🔊 Hear Approximation';
             };
 
             utterance.onerror = () => {
                 btn.disabled = false;
-                btn.innerHTML = btnId === 'playEnBtn' ? '🔊 Play English' : '🔊 Play Approximation';
+                btn.innerHTML = btnId === 'playEnBtn' ? '🔊 Hear English' : '🔊 Hear Approximation';
                 alert('Audio playback failed. Your browser may not support this language.');
             };
 
