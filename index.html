@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Pronunciation Helper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-title {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .result-content {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .audio-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .audio-btn {
+            flex: 1;
+            padding: 12px;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .audio-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .audio-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .tip {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e8f4ff;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .languages-list {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .languages-list h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .languages-list ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 8px;
+        }
+
+        .languages-list li {
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+            font-size: 0.85em;
+            color: #555;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 English Pronunciation Helper</h1>
+        <p class="subtitle">Learn to pronounce English words in your language</p>
+
+        <div class="input-group">
+            <label for="word">📝 English Word</label>
+            <input type="text" id="word" placeholder="e.g., thursday, wavelength, warm">
+        </div>
+
+        <div class="input-group">
+            <label for="language">🌐 Your Language</label>
+            <select id="language">
+                <option value="">Select a language...</option>
+                <option value="italian">Italian</option>
+                <option value="spanish_latam">Spanish (Latin America)</option>
+                <option value="spanish_spain">Spanish (Spain)</option>
+                <option value="french">French</option>
+                <option value="polish">Polish</option>
+                <option value="turkish">Turkish</option>
+                <option value="portuguese_brazil">Portuguese (Brazil)</option>
+                <option value="portuguese_portugal">Portuguese (Portugal)</option>
+                <option value="korean">Korean</option>
+            </select>
+        </div>
+
+        <button onclick="pronounce()">Get Pronunciation Guide</button>
+
+        <div id="result" class="result">
+            <div class="result-title">📖 English Word</div>
+            <div class="result-content" id="englishWord"></div>
+
+            <div class="result-title">🗣️ Pronunciation Guide</div>
+            <div class="result-content" id="pronunciation"></div>
+
+            <div class="audio-controls">
+                <button class="audio-btn" onclick="playEnglish()" id="playEnBtn">
+                    🔊 Play English
+                </button>
+                <button class="audio-btn" onclick="playApproximation()" id="playAppBtn">
+                    🔊 Play Approximation
+                </button>
+            </div>
+
+            <div class="tip" id="tip"></div>
+        </div>
+    </div>
+
+    <script>
+        const phoneticMaps = {
+            italian: {
+                b:"b", c:"k", d:"d", f:"f", g:"gh", h:"", j:"gi", k:"k", l:"l", 
+                m:"m", n:"n", p:"p", q:"ku", r:"r", s:"s", t:"t", v:"v", w:"u", 
+                x:"ks", y:"i", z:"z", a:"a", e:"e", i:"i", o:"o", u:"u",
+                th:"t", sh:"sc", ch:"c", ph:"f"
+            },
+            spanish_latam: {
+                b:"b", c:"k", d:"d", f:"f", g:"g", h:"", j:"y", k:"k", l:"l", 
+                m:"m", n:"n", p:"p", q:"k", r:"r", s:"s", t:"t", v:"b", w:"gu", 
+                x:"ks", y:"i", z:"s", a:"a", e:"e", i:"i", o:"o", u:"u",
+                th:"z", sh:"ch", ch:"ch", ph:"f"
+            },
+            spanish_spain: {
+                b:"b", c:"k", d:"d", f:"f", g:"g", h:"", j:"y", k:"k", l:"l", 
+                m:"m", n:"n", p:"p", q:"k", r:"r", s:"s", t:"t", v:"b", w:"gu", 
+                x:"ks", y:"i", z:"z", a:"a", e:"e", i:"i", o:"o", u:"u",
+                th:"z", sh:"ch", ch:"ch", ph:"f"
+            },
+            french: {
+                b:"b", c:"k", d:"d", f:"f", g:"g", h:"", j:"j", k:"k", l:"l", 
+                m:"m", n:"n", p:"p", q:"k", r:"r", s:"s", t:"t", v:"v", w:"ou", 
+                x:"ks", y:"i", z:"z", a:"a", e:"eu", i:"i", o:"o", u:"ou",
+                th:"z", sh:"ch", ch:"tch", ph:"f"
+            },
+            polish: {
+                b:"b", c:"c", d:"d", f:"f", g:"g", h:"h", j:"dż", k:"k", l:"l", 
+                m:"m", n:"n", p:"p", q:"k", r:"r", s:"s", t:"t", v:"w", w:"ł", 
+                x:"ks", y:"y", z:"z", a:"a", e:"e", i:"i", o:"o", u:"u",
+                th:"f", sh:"sz", ch:"cz", ph:"f"
+            },
+            turkish: {
+                b:"b", c:"c", d:"d", f:"f", g:"g", h:"h", j:"c", k:"k", l:"l", 
+                m:"m", n:"n", p:"p", q:"k", r:"r", s:"s", t:"t", v:"v", w:"v", 
+                x:"ks", y:"y", z:"z", a:"a", e:"e", i:"i", o:"o", u:"u",
+                th:"t", sh:"ş", ch:"ç", ph:"f"
+            },
+            portuguese_brazil: {
+                b:"b", c:"k", d:"d", f:"f", g:"g", h:"", j:"j", k:"k", l:"l", 
+                m:"m", n:"n", p:"p", q:"k", r:"r", s:"s", t:"t", v:"v", w:"u", 
+                x:"ks", y:"i", z:"z", a:"a", e:"e", i:"i", o:"o", u:"u",
+                th:"t", sh:"ch", ch:"tch", ph:"f"
+            },
+            portuguese_portugal: {
+                b:"b", c:"k", d:"d", f:"f", g:"g", h:"", j:"j", k:"k", l:"l", 
+                m:"m", n:"n", p:"p", q:"k", r:"r", s:"s", t:"t", v:"v", w:"u", 
+                x:"ks", y:"i", z:"z", a:"a", e:"e", i:"i", o:"o", u:"u",
+                th:"t", sh:"ch", ch:"tch", ph:"f"
+            },
+            korean: {
+                b:"b", c:"k", d:"d", f:"p", g:"g", h:"h", j:"j", k:"k", l:"l", 
+                m:"m", n:"n", p:"p", q:"k", r:"r", s:"s", t:"t", v:"b", w:"w", 
+                x:"ks", y:"y", z:"j", a:"a", e:"e", i:"i", o:"o", u:"u",
+                th:"s", sh:"sh", ch:"ch", ph:"p"
+            }
+        };
+
+        const langCodes = {
+            italian: "it", spanish_latam: "es", spanish_spain: "es",
+            french: "fr", polish: "pl", turkish: "tr",
+            portuguese_brazil: "pt", portuguese_portugal: "pt", korean: "ko"
+        };
+
+        let currentWord = "";
+        let currentLang = "";
+        let currentPhonetic = "";
+
+        function phoneticConvert(word, lang) {
+            const mapping = phoneticMaps[lang];
+            if (!mapping) return word;
+
+            const lower = word.toLowerCase();
+            let result = "";
+            let i = 0;
+
+            while (i < lower.length) {
+                if (i < lower.length - 1) {
+                    const digraph = lower.substring(i, i + 2);
+                    if (mapping[digraph]) {
+                        result += mapping[digraph];
+                        i += 2;
+                        continue;
+                    }
+                }
+                result += mapping[lower[i]] || lower[i];
+                i++;
+            }
+
+            return result;
+        }
+
+        function splitSyllables(word) {
+            const vowels = "aeiouy";
+            const result = [];
+            let current = "";
+
+            for (let i = 0; i < word.length; i++) {
+                const ch = word[i].toLowerCase();
+                current += ch;
+
+                if (vowels.includes(ch) && i < word.length - 1) {
+                    const next = word[i + 1].toLowerCase();
+                    if (!vowels.includes(next)) {
+                        if (i < word.length - 2) {
+                            const twoAhead = word.substring(i + 1, i + 3).toLowerCase();
+                            if (!['th', 'sh', 'ch', 'ph', 'ck', 'ng'].includes(twoAhead)) {
+                                result.push(current);
+                                current = "";
+                            }
+                        } else {
+                            result.push(current);
+                            current = "";
+                        }
+                    }
+                }
+            }
+
+            if (current) result.push(current);
+            return result.length > 0 ? result.join("-") : word;
+        }
+
+        function pronounce() {
+            const word = document.getElementById('word').value.trim();
+            const lang = document.getElementById('language').value;
+
+            if (!word) {
+                alert('Please enter an English word');
+                return;
+            }
+
+            if (!lang) {
+                alert('Please select a language');
+                return;
+            }
+
+            currentWord = word;
+            currentLang = lang;
+            
+            const phonetic = phoneticConvert(word, lang);
+            const syllables = splitSyllables(phonetic);
+            currentPhonetic = phonetic;
+
+            document.getElementById('englishWord').textContent = word;
+            document.getElementById('pronunciation').textContent = syllables;
+            
+            const langName = lang.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            document.getElementById('tip').textContent = 
+                `💡 Tip: Try saying "${syllables}" using ${langName} sounds!`;
+
+            document.getElementById('result').classList.add('show');
+        }
+
+        function playEnglish() {
+            playAudio(currentWord, 'en', 'playEnBtn');
+        }
+
+        function playApproximation() {
+            const langCode = langCodes[currentLang] || 'en';
+            playAudio(currentPhonetic, langCode, 'playAppBtn');
+        }
+
+        function playAudio(text, lang, btnId) {
+            const btn = document.getElementById(btnId);
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>';
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang;
+            utterance.rate = 0.8;
+
+            utterance.onend = () => {
+                btn.disabled = false;
+                btn.innerHTML = btnId === 'playEnBtn' ? '🔊 Play English' : '🔊 Play Approximation';
+            };
+
+            utterance.onerror = () => {
+                btn.disabled = false;
+                btn.innerHTML = btnId === 'playEnBtn' ? '🔊 Play English' : '🔊 Play Approximation';
+                alert('Audio playback failed. Your browser may not support this language.');
+            };
+
+            speechSynthesis.cancel();
+            speechSynthesis.speak(utterance);
+        }
+
+        // Enter key support
+        document.getElementById('word').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') pronounce();
+        });
+    </script>
+</body>
+</html>
